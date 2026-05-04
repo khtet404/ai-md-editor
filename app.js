@@ -8,13 +8,16 @@ const MODEL = "gemini-flash-latest";
 const KEY_STORAGE = "gemini_api_key";
 const DEBOUNCE_MS = 700;
 
-const SYSTEM_PROMPT = `Rewrite the user's Markdown draft so an AI assistant can read and act on it without ambiguity.
-Rules:
-- Preserve the user's intent and facts. Do not invent information.
-- Replace pronouns and vague references with explicit nouns.
-- Resolve idioms, slang, and shorthand into plain language.
-- Keep or improve Markdown structure: headings, bullet lists, fenced code blocks, tables.
-- Keep it concise. No preamble. No commentary. Output only the rewritten Markdown.`;
+const SYSTEM_PROMPT = `Rewrite the user's draft into clear, unambiguous English an AI assistant can act on.
+
+Hard rules:
+- Output length must be similar to the input. Do not expand, elaborate, or pad.
+- Do NOT invent facts, background, requirements, headings, or sections that the user did not write.
+- Do NOT add Markdown structure (headings, bullet lists) unless the source already has it or has 3+ distinct items that obviously need a list.
+- Translate any non-English text to English.
+- Replace pronouns and shorthand with explicit nouns. Resolve slang and idioms.
+- Preserve the user's tone (a question stays a question, a request stays a request).
+- No preamble, no commentary, no sign-off. Output only the rewritten text.`;
 
 function setStatus(text, cls) {
   status.textContent = text;
