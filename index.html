@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AI Markdown Editor</title>
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header>
+    <h1>AI Markdown Editor</h1>
+    <div class="controls">
+      <select id="model">
+        <option value="gemini-2.0-flash-lite">Flash Lite (fastest)</option>
+        <option value="gemini-2.0-flash" selected>Flash</option>
+        <option value="gemini-2.5-flash">2.5 Flash</option>
+      </select>
+      <span id="status" class="status idle">idle</span>
+      <button id="key-btn" title="Set Gemini API key">API key</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="pane">
+      <div class="pane-head">
+        <span>Your draft</span>
+        <button data-copy="input">Copy</button>
+      </div>
+      <textarea id="input" placeholder="Start typing in Markdown…
+The right pane will rewrite it to be AI-friendly: explicit, structured, unambiguous."></textarea>
+    </section>
+
+    <section class="pane">
+      <div class="pane-head">
+        <span>AI-readable</span>
+        <button data-copy="output">Copy</button>
+      </div>
+      <textarea id="output" readonly placeholder="Rewritten output appears here…"></textarea>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
