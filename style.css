@@ -104,6 +104,11 @@ main {
   font-size: 12px;
 }
 
+.btn-group {
+  display: flex;
+  gap: 6px;
+}
+
 textarea {
   flex: 1;
   width: 100%;

@@ -19,7 +19,11 @@
     <section class="pane">
       <div class="pane-head">
         <span>Your draft</span>
-        <button data-copy="input">Copy</button>
+        <div class="btn-group">
+          <button data-paste="input">Paste</button>
+          <button data-clear="input">Clear</button>
+          <button data-copy="input">Copy</button>
+        </div>
       </div>
       <textarea id="input" placeholder="Start typing in Markdown…
 The right pane will rewrite it to be AI-friendly: explicit, structured, unambiguous."></textarea>

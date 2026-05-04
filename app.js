@@ -38,19 +38,49 @@ function promptForKey() {
 
 keyBtn.addEventListener("click", promptForKey);
 
+function flash(btn, label) {
+  const old = btn.textContent;
+  btn.textContent = label;
+  setTimeout(() => (btn.textContent = old), 900);
+}
+
 document.querySelectorAll("button[data-copy]").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const target = $(btn.dataset.copy);
     if (!target.value) return;
     try {
       await navigator.clipboard.writeText(target.value);
-      const old = btn.textContent;
-      btn.textContent = "Copied";
-      setTimeout(() => (btn.textContent = old), 900);
+      flash(btn, "Copied");
     } catch {
       target.select();
       document.execCommand("copy");
     }
+  });
+});
+
+document.querySelectorAll("button[data-paste]").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const target = $(btn.dataset.paste);
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) return;
+      target.value = text;
+      target.focus();
+      flash(btn, "Pasted");
+      schedule();
+    } catch {
+      flash(btn, "Blocked");
+    }
+  });
+});
+
+document.querySelectorAll("button[data-clear]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const target = $(btn.dataset.clear);
+    target.value = "";
+    output.value = "";
+    target.focus();
+    setStatus("idle", "idle");
   });
 });
 
