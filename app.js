@@ -2,9 +2,9 @@ const $ = (id) => document.getElementById(id);
 const input = $("input");
 const output = $("output");
 const status = $("status");
-const modelSel = $("model");
 const keyBtn = $("key-btn");
 
+const MODEL = "gemini-flash-latest";
 const KEY_STORAGE = "gemini_api_key";
 const DEBOUNCE_MS = 700;
 
@@ -97,7 +97,7 @@ async function rewrite() {
 
   setStatus("rewriting…", "working");
   try {
-    const result = await callGemini(text, modelSel.value, ctrl.signal);
+    const result = await callGemini(text, MODEL, ctrl.signal);
     output.value = result;
     setStatus("ready", "ok");
   } catch (err) {
@@ -114,6 +114,5 @@ function schedule() {
 }
 
 input.addEventListener("input", schedule);
-modelSel.addEventListener("change", schedule);
 
 if (!getKey()) setStatus("set API key →", "warn");
