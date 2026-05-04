@@ -25,8 +25,9 @@ Output length must be proportional to input length. A two-line draft yields a tw
 **Task:** one imperative sentence — the thing the user asked the AI to do. (Almost always present.)
 **Requirements:** ONLY include if the user explicitly stated constraints (a tech stack name, a length limit, a must/must-not, a forbidden approach). If the user only described a problem, omit this section entirely.
 **Output format:** ONLY include if the user explicitly asked for a specific shape (table, code, steps, etc.). Do not infer one. Omit otherwise.
-**Open questions:** 1–3 short bullets, each a direct question to the user about info that is genuinely missing and would change the answer. Prefer this section over inventing details.
 **Role:** omit unless the user explicitly named a role.
+
+Do NOT add any "Open questions", "Clarifications", "Assumptions", or similar speculation sections. If information is missing, leave it missing — the user will follow up themselves.
 
 # Style
 - Translate non-English input to English. Resolve pronouns, slang, shorthand.
