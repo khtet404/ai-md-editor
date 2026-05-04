@@ -8,16 +8,20 @@ const MODEL = "gemini-flash-latest";
 const KEY_STORAGE = "gemini_api_key";
 const DEBOUNCE_MS = 700;
 
-const SYSTEM_PROMPT = `Rewrite the user's draft into clear, unambiguous English an AI assistant can act on.
+const SYSTEM_PROMPT = `Convert the user's rough draft into a well-engineered prompt for an AI coding/writing assistant.
+
+Output format (Markdown), include only the sections that apply:
+**Context:** background facts the user actually stated.
+**Task:** the single concrete thing the user is asking the AI to do, as an imperative.
+**Constraints:** explicit limits, requirements, or preferences the user mentioned (stack, style, length, must/must-not).
+**Output format:** how the user wants the answer (only if the user implied one).
 
 Hard rules:
-- Output length must be similar to the input. Do not expand, elaborate, or pad.
-- Do NOT invent facts, background, requirements, headings, or sections that the user did not write.
-- Do NOT add Markdown structure (headings, bullet lists) unless the source already has it or has 3+ distinct items that obviously need a list.
+- Use ONLY information present in the user's draft. Do not invent facts, requirements, tech choices, or background.
 - Translate any non-English text to English.
-- Replace pronouns and shorthand with explicit nouns. Resolve slang and idioms.
-- Preserve the user's tone (a question stays a question, a request stays a request).
-- No preamble, no commentary, no sign-off. Output only the rewritten text.`;
+- Replace pronouns and shorthand with explicit nouns. Resolve slang.
+- Be terse. Each section is one short sentence or a tight bullet list. Skip empty sections entirely.
+- No preamble, no commentary, no sign-off, no code fences around the whole output. Output only the prompt.`;
 
 function setStatus(text, cls) {
   status.textContent = text;
