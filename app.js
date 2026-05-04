@@ -3,10 +3,14 @@ const input = $("input");
 const output = $("output");
 const status = $("status");
 const keyBtn = $("key-btn");
+const autoBtn = $("auto-btn");
 
 const MODEL = "gemini-flash-latest";
 const KEY_STORAGE = "gemini_api_key";
+const AUTO_STORAGE = "auto_rewrite";
 const DEBOUNCE_MS = 700;
+const isMac = navigator.platform.toLowerCase().includes("mac");
+const RUN_HINT = isMac ? "⌘↵" : "Ctrl+↵";
 
 const SYSTEM_PROMPT = `You are a prompt engineer. The user gives you a rough draft of something they want to ask an AI assistant. Rewrite it as the strongest possible prompt — the version that would let a capable AI produce the best answer in one shot.
 
@@ -98,11 +102,11 @@ document.querySelectorAll("button[data-clear]").forEach((btn) => {
 let pending = null;
 let inflight = null;
 
-async function callGemini(text, model, signal) {
+async function streamGemini(text, model, signal, onChunk) {
   const key = getKey();
   if (!key) throw new Error("Set your API key (top right).");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
 
   const body = {
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
@@ -117,14 +121,36 @@ async function callGemini(text, model, signal) {
     signal,
   });
 
-  if (!res.ok) {
+  if (!res.ok || !res.body) {
     const detail = await res.text().catch(() => "");
     throw new Error(`HTTP ${res.status} ${detail.slice(0, 200)}`);
   }
 
-  const data = await res.json();
-  const parts = data?.candidates?.[0]?.content?.parts || [];
-  return parts.map((p) => p.text || "").join("").trim();
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+
+    let idx;
+    while ((idx = buf.indexOf("\n")) !== -1) {
+      const line = buf.slice(0, idx).trim();
+      buf = buf.slice(idx + 1);
+      if (!line.startsWith("data:")) continue;
+      const json = line.slice(5).trim();
+      if (!json) continue;
+      try {
+        const data = JSON.parse(json);
+        const chunk = (data?.candidates?.[0]?.content?.parts || [])
+          .map((p) => p.text || "")
+          .join("");
+        if (chunk) onChunk(chunk);
+      } catch { /* skip malformed line */ }
+    }
+  }
 }
 
 async function rewrite() {
@@ -139,10 +165,16 @@ async function rewrite() {
   const ctrl = new AbortController();
   inflight = ctrl;
 
+  output.value = "";
   setStatus("rewriting…", "working");
   try {
-    const result = await callGemini(text, MODEL, ctrl.signal);
-    output.value = result;
+    let acc = "";
+    await streamGemini(text, MODEL, ctrl.signal, (chunk) => {
+      acc += chunk;
+      output.value = acc;
+      output.scrollTop = output.scrollHeight;
+    });
+    output.value = acc.trim();
     setStatus("ready", "ok");
   } catch (err) {
     if (err.name === "AbortError") return;
@@ -152,11 +184,38 @@ async function rewrite() {
   }
 }
 
+function isAuto() {
+  return localStorage.getItem(AUTO_STORAGE) !== "0";
+}
+
+function renderAutoBtn() {
+  autoBtn.textContent = isAuto() ? "Auto: on" : `Auto: off (${RUN_HINT})`;
+}
+
+function setAuto(on) {
+  localStorage.setItem(AUTO_STORAGE, on ? "1" : "0");
+  renderAutoBtn();
+  if (on) schedule();
+}
+
+autoBtn.addEventListener("click", () => setAuto(!isAuto()));
+
 function schedule() {
   clearTimeout(pending);
+  if (!isAuto()) return;
   pending = setTimeout(rewrite, DEBOUNCE_MS);
 }
 
 input.addEventListener("input", schedule);
 
+document.addEventListener("keydown", (e) => {
+  const mod = isMac ? e.metaKey : e.ctrlKey;
+  if (mod && e.key === "Enter") {
+    e.preventDefault();
+    clearTimeout(pending);
+    rewrite();
+  }
+});
+
+renderAutoBtn();
 if (!getKey()) setStatus("set API key →", "warn");
